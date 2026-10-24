@@ -105,10 +105,15 @@ async function listFiles(directory,prefix=''){
   check('No legacy debug markers, export, time or model tools in the DOM',await page.locator('.hotspot,[download],#export-model,#clock,#tools-toggle,#scene-tools,#cinema-dialog,[data-set=timeFormat]').count()===0);
   check('No production debug global',await page.evaluate(()=>typeof window.roadster==='undefined'));
   await shot('home');
-  const before=await page.locator('#scene').screenshot(),rect=await page.locator('#scene').boundingBox();
+  // The scene renders continuously. Capture its viewport rectangle directly:
+  // locator.screenshot waits for layout stability on animation frames, which
+  // can exhaust its timeout with the CI runner's software WebGL renderer.
+  const rect=await page.locator('#scene').boundingBox();
+  assert.ok(rect&&rect.width>0&&rect.height>0,'3D scene has a visible viewport');
+  const before=await page.screenshot({clip:rect});
   await page.mouse.move(rect.x+rect.width*.55,rect.y+rect.height*.60);await page.mouse.down();
   await page.mouse.move(rect.x+rect.width*.76,rect.y+rect.height*.44,{steps:16});await page.mouse.up();await page.waitForTimeout(1000);
-  check('Dragging changes the rendered 3D view',!before.equals(await page.locator('#scene').screenshot()));
+  check('Dragging changes the rendered 3D view',!before.equals(await page.screenshot({clip:rect})));
   const rail=await page.locator('.gear-rail').boundingBox(),x=rail.x+rail.width/2,y=rail.y+rail.height*.55;
   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x,y-90,{steps:12});await page.mouse.up();
   check('Touch shift commits D',await page.locator('.gear-rail').getAttribute('data-gear')==='D');
