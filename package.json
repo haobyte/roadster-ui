@@ -6,9 +6,11 @@
   "scripts": {
     "start": "npm run build && node server.mjs",
     "build": "node scripts/build-static.mjs",
+    "build:github-pages": "node scripts/build-static.mjs --github-pages",
     "test": "npm run test:unit && npm run build && npm run test:browser",
     "test:unit": "node --test scripts/*.test.mjs",
     "test:browser": "node scripts/public-release-test.cjs",
+    "test:github-pages": "npm run build:github-pages && node scripts/public-release-test.cjs --github-pages",
     "check:public": "node scripts/check-public.mjs"
   },
   "dependencies": {

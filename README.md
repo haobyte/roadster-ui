@@ -6,6 +6,8 @@ This is an unofficial project with no affiliation with Tesla. It does not connec
 
 **[Try the live demo](https://roadster-ui.pages.dev/)**
 
+**[GitHub Pages demo](https://haobyte.github.io/roadster-ui/)**
+
 ## Preview
 
 ![Roadster cockpit with a 3D vehicle, airflow visualization, raised rear wing, and red dashboard controls](docs/screenshots/roadster-cockpit.png)
@@ -18,9 +20,9 @@ Example cockpit view with airflow visualization. The current source build and li
 - Explore vehicle presets, lighting, aerodynamic components, charging limits, brightness, and themes.
 - Open the track interface and hold Boost for visual effects and synthesized audio.
 - Browse a simulated local map and a visual music player interface without music playback.
-- Use desktop and mobile layouts, with a Tencent Video fullscreen entry point.
+- Use desktop and mobile layouts, with browser fullscreen on GitHub Pages and a Tencent Video fullscreen entry point on the Cloudflare demo.
 
-The fullscreen entry point leaves this site and redirects through Tencent Video and 1905. Availability and compatibility with the Tesla browser depend on those services. The app stores display preferences locally and has no account system or vehicle-data upload feature. Cloudflare processes network requests as the hosting provider and may collect network error diagnostics depending on its configuration.
+On the Cloudflare demo, the fullscreen entry point leaves the site and redirects through Tencent Video and 1905. Availability and compatibility with the Tesla browser depend on those services. GitHub Pages uses the browser Fullscreen API to preserve the project URL; browsers without that API cannot enter fullscreen there. The app stores display preferences locally and has no account system or vehicle-data upload feature. The hosting provider processes network requests; Cloudflare may also collect network error diagnostics depending on its configuration.
 
 ## Getting started
 
@@ -58,6 +60,24 @@ The live demo is published through Cloudflare Pages Direct Upload. Releases are 
 This repository retains the core Pages features and excludes research archives, development and debug pages, legacy audio, account credentials, deployment tokens, and private server configuration. The source build and live demo use generated gradients instead of video-derived album covers. Documentation screenshots are not included in the Pages build.
 
 Browsers must download JavaScript, images, and GLB assets to display the app. Removing download buttons does not prevent visitors from saving those files.
+
+## Deploy to GitHub Pages
+
+In the repository's Settings → Pages, select **GitHub Actions**. The [`Publish GitHub Pages`](.github/workflows/pages.yml) workflow runs on pushes to `main` and can also be started manually. It checks the public-file allowlist, runs the unit and browser suites, and uploads only `dist/`. Deployment uses a separate job with Pages/OIDC permissions; the build job has read-only repository access. Actions are pinned to reviewed commit IDs.
+
+To reproduce the GitHub Pages build locally:
+
+```sh
+npm ci
+npx playwright install chromium
+npm run test:github-pages
+```
+
+This build adds supported CSP and `no-referrer` meta policies to the index and 404 pages, and omits the Cloudflare-only `_headers` file. The browser test serves the build under `/roadster-ui/` without custom security headers to verify project-path asset loading and CSP enforcement.
+
+GitHub Pages cannot apply this project's custom response headers. Its HTML CSP does **not** provide `frame-ancestors`, `X-Frame-Options`, or the camera/microphone/geolocation `Permissions-Policy` configured on Cloudflare. These platform limits are not treated as passing header checks. Cloudflare Direct Upload remains a separate deployment and is not changed by the GitHub workflow.
+
+For an online check, use `BASE_URL=https://haobyte.github.io/roadster-ui/ node scripts/public-release-test.cjs --github-pages` after building the GitHub Pages package. A code rollback should use a revert commit on the public branch, which triggers another deployment.
 
 ## Project structure
 

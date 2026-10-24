@@ -8,6 +8,7 @@ const git = (...args) => execFileSync('git', args, {cwd:root, encoding:'utf8'});
 const files = git('ls-files', '-z').split('\0').filter(Boolean);
 const allowed = new Set([
   '.gitignore', 'README.md', 'ASSETS.md', 'THIRD_PARTY_NOTICES.md', 'LICENSE',
+  '.github/workflows/pages.yml',
   'index.html', '404.html', '_headers', 'package.json', 'package-lock.json', 'server.mjs',
   'data/ui-spec.json', 'licenses/three.txt', 'assets/roadster-body.glb',
   'docs/screenshots/roadster-cockpit.png',

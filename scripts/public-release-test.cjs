@@ -1,6 +1,8 @@
 const {chromium}=require('playwright');
 const fs=require('node:fs/promises'),path=require('node:path'),assert=require('node:assert/strict');
 const root=path.resolve(__dirname,'..'),dist=path.join(root,'dist');
+const githubPages=process.argv.includes('--github-pages');
+const limitations=githubPages?['GitHub Pages does not apply custom Permissions-Policy or anti-framing headers; HTML CSP cannot replace these.']:[];
 const qa=process.env.QA_OUTPUT_DIR?path.resolve(process.env.QA_OUTPUT_DIR):path.join(root,'test-results/public-release');
 const ua='Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Tesla/2026.32';
 const checks=[],errors=[];
@@ -18,23 +20,24 @@ async function listFiles(directory,prefix=''){
 (async()=>{
  const {createStaticServer,parseGlobalHeaders}=await import('./static-server.mjs');
  await fs.mkdir(qa,{recursive:true});
- const expectedFiles=['index.html','404.html','_headers','THREE-LICENSE.txt','src/app.js','src/style.css','src/interface.css','src/tesla.css','data/ui-spec.json','assets/roadster-body.glb'].sort();
+ const expectedFiles=['index.html','404.html',...(githubPages?[]:['_headers']),'THREE-LICENSE.txt','src/app.js','src/style.css','src/interface.css','src/tesla.css','data/ui-spec.json','assets/roadster-body.glb'].sort();
  const actualFiles=await listFiles(dist);
  check('Public package contains only approved runtime files and Pages configuration',JSON.stringify(actualFiles)===JSON.stringify(expectedFiles),actualFiles);
- const headersText=await fs.readFile(path.join(dist,'_headers'),'utf8');
- check('Build preserves the Pages security configuration',headersText===await fs.readFile(path.join(root,'_headers'),'utf8'));
+ const headersText=await fs.readFile(path.join(root,'_headers'),'utf8');
+ if(!githubPages)check('Build preserves the Pages security configuration',headersText===await fs.readFile(path.join(dist,'_headers'),'utf8'));
  const securityHeaders=parseGlobalHeaders(headersText);
  const requiredHeaders=['content-security-policy','permissions-policy','referrer-policy','x-content-type-options','x-frame-options'];
- check('All five security headers are configured',requiredHeaders.every(name=>securityHeaders[name]));
+ check('Cloudflare source policy declares the expected security headers',requiredHeaders.every(name=>securityHeaders[name]));
  const html=await fs.readFile(path.join(dist,'index.html'),'utf8'),js=await fs.readFile(path.join(dist,'src/app.js'),'utf8');
  const spec=JSON.parse(await fs.readFile(path.join(dist,'data/ui-spec.json'),'utf8'));
  check('Production package has no export UI, exporter, debug API, source paths or time controls',
    !/export-model|\bdownload\b|GLTFExporter|window\.roadster|\/Users\/|timeFormat|cinema-dialog|tools-toggle/.test(html+'\n'+js));
  check('Only gesture-driven Boost sound remains; no preview, music oscillator or volume UI',!/createOscillator|reveal-flight|reveal-thruster|jet-preview|id="volume"/.test(html+'\n'+js));
  check('Runtime data excludes research metadata',!spec.source_local&&!spec.source_url&&!spec.evidence_legend&&!spec.pages.Display.time_options);
- const server=await createStaticServer(dist);
+ const basePath=githubPages?'/roadster-ui/':'/';
+ const server=await createStaticServer(dist,{githubPages,basePath});
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
- const base=process.env.BASE_URL||`http://127.0.0.1:${server.address().port}/`;
+ const base=process.env.BASE_URL||`http://127.0.0.1:${server.address().port}${basePath}`;
  const label=process.env.BASE_URL?'public':'local';
  const browser=await chromium.launch({headless:true,args:['--enable-unsafe-swiftshader']});
  const page=await browser.newPage({userAgent:ua,viewport:{width:1600,height:1000}});
@@ -61,12 +64,22 @@ async function listFiles(directory,prefix=''){
   const missing=await page.request.get(new URL('unpublished-page',base).href);
   const missingHTML=await missing.text();
   check('Unknown paths serve the 404 page without loading the cockpit',missing.status()===404&&/<h1>404<\/h1>/.test(missingHTML)&&!/<script\b|id="cockpit"/.test(missingHTML));
+  if(githubPages)check('GitHub Pages 404 links back to the project root',missingHTML.includes(`href="${new URL(base).pathname}"`));
   const headerResults=[];
+  if(!githubPages){
   for(const resource of ['', 'src/app.js', 'src/style.css', 'data/ui-spec.json', 'assets/roadster-body.glb', 'unpublished-page']){
    const response=await page.request.get(new URL(resource,base).href);
    headerResults.push({path:resource||'/',matches:requiredHeaders.every(name=>response.headers()[name]===securityHeaders[name])});
   }
   check('HTML, assets and 404 responses carry the configured security headers',headerResults.every(r=>r.matches),headerResults);
+  }else{
+   const expectedCSP=securityHeaders['content-security-policy'].split(';').map(s=>s.trim()).filter(s=>s&&!s.startsWith('frame-ancestors ')).join('; ');
+   for(const resource of ['', '404.html','unpublished-page']){
+    const response=await page.request.get(new URL(resource,base).href),text=await response.text();
+    headerResults.push({path:resource||'/',metaCSP:text.includes(`http-equiv="Content-Security-Policy" content="${expectedCSP}"`),referrer:text.includes('name="referrer" content="no-referrer"'),unsupportedFraming:!!/frame-ancestors/.test(text)});
+   }
+   check('GitHub Pages index and 404 carry supported CSP and referrer meta policies',headerResults.every(r=>r.metaCSP&&r.referrer&&!r.unsupportedFraming),headerResults);
+  }
   // Isolated negative probes: intercept the test domain so a failed policy
   // never sends a real external request, and keep expected violations out of QA.
   const probe=await browser.newPage(),unexpectedRequests=[];
@@ -83,7 +96,7 @@ async function listFiles(directory,prefix=''){
    await probe.waitForFunction(()=>window.__policyProbe.violations.length>=3);
    const policy=await probe.evaluate(()=>({inlineExecuted:!!window.__inlineProbe,externalExecuted:!!window.__externalProbe,...window.__policyProbe,permissions:Object.fromEntries(['camera','microphone','geolocation'].map(name=>[name,document.featurePolicy.allowsFeature(name)]))}));
    check('CSP blocks inline scripts, external scripts and external connections',!policy.inlineExecuted&&!policy.externalExecuted&&policy.fetchBlocked&&policy.violations.includes('script-src-elem')&&policy.violations.includes('connect-src')&&unexpectedRequests.length===0,policy);
-   check('Camera, microphone and geolocation are disabled',Object.values(policy.permissions).every(value=>value===false),policy.permissions);
+   if(!githubPages)check('Camera, microphone and geolocation are disabled',Object.values(policy.permissions).every(value=>value===false),policy.permissions);
   }finally{await probe.close();}
   await page.goto(base,{waitUntil:'domcontentloaded'});await ready();
   check('Real 3D asset loads',assetResponses.some(r=>r.status===200),assetResponses);
@@ -142,14 +155,21 @@ async function listFiles(directory,prefix=''){
   // Capture the outbound URL locally; this does not validate the real provider chain.
   const violations=await page.evaluate(()=>window.__releaseSecurity.violations);
   check('Core interactions have no CSP violations',violations.length===0,violations);
+  if(new URL(base).hostname.endsWith('.github.io')){
+   await page.locator('#fullscreen').click();
+   await page.waitForFunction(()=>!!document.fullscreenElement);
+   check('GitHub Pages uses native fullscreen without leaving the project path',page.url()===base);
+   await page.evaluate(()=>document.exitFullscreen());
+  }else{
   let destination,fullscreenReferrer;
   await page.route('https://v.qq.com/**',route=>{destination=route.request().url();fullscreenReferrer=route.request().headers().referer;return route.fulfill({contentType:'text/html',body:'<title>Captured cinema navigation</title>'});});
   await page.locator('#fullscreen').click();await page.waitForURL('https://v.qq.com/**');
   const expected='https://v.qq.com/search_redirect.html?url=https://www.1905.com/api/redirec.html?redirect_url='+new URL(base).origin+'?www.1905.com';
   check('One fullscreen click navigates directly to Tencent',destination===expected,destination);
   check('Fullscreen navigation does not send a Referer header',!fullscreenReferrer);
+  }
   check('No runtime or asset errors',errors.length===0,errors);
-  await fs.writeFile(path.join(qa,`${label}-results.json`),JSON.stringify({passed:true,base,checks,errors},null,2));
+  await fs.writeFile(path.join(qa,`${label}-results.json`),JSON.stringify({passed:true,base,githubPages,limitations,checks,errors},null,2));
  }catch(e){await page.screenshot({path:path.join(qa,`${label}-failure.png`)}).catch(()=>{});await fs.writeFile(path.join(qa,`${label}-results.json`),JSON.stringify({passed:false,base,checks,errors,error:e.stack},null,2));throw e;}
  finally{await browser.close();await new Promise(resolve=>server.close(resolve));}
 })().catch(e=>{console.error(e);process.exitCode=1;});

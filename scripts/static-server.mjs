@@ -15,9 +15,9 @@ export function parseGlobalHeaders(text) {
   return headers;
 }
 
-export async function createStaticServer(directory) {
+export async function createStaticServer(directory, {githubPages = false, basePath = '/'} = {}) {
   const root = await realpath(directory);
-  const headers = parseGlobalHeaders(await readFile(path.join(root, '_headers'), 'utf8'));
+  const headers = githubPages ? {} : parseGlobalHeaders(await readFile(path.join(root, '_headers'), 'utf8'));
   const notFound = await readFile(path.join(root, '404.html'));
   const types = {'.html':'text/html; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.css':'text/css; charset=utf-8', '.json':'application/json', '.glb':'model/gltf-binary', '.webp':'image/webp', '.txt':'text/plain; charset=utf-8'};
   const inside = file => file === root || file.startsWith(root + path.sep);
@@ -26,7 +26,9 @@ export async function createStaticServer(directory) {
       res.writeHead(405, {...headers, Allow:'GET, HEAD'}); res.end(); return;
     }
     try {
-      const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+      const requested = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
+      if (!requested.startsWith(basePath)) throw new Error('Outside site base path');
+      const pathname = '/' + requested.slice(basePath.length);
       if (pathname === '/_headers') throw new Error('Configuration is not a public asset');
       let file = path.resolve(root, '.' + pathname);
       if (!inside(file)) throw new Error('Outside public directory');

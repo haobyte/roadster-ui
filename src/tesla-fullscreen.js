@@ -13,7 +13,27 @@ export function cinemaLinks(base) {
   };
 }
 
-export function initFullscreen({beforeLeave}) {
+export function initFullscreen({beforeLeave, native = location.hostname.endsWith('.github.io')}) {
+  if (native) {
+    // Project Pages has no server-side root redirect for the cinema bridge.
+    // Stay on the current project URL using the browser Fullscreen API.
+    const root = document.documentElement;
+    for (const id of ['fullscreen', 'cinema-open']) {
+      const button = document.getElementById(id);
+      button.disabled = typeof root.requestFullscreen !== 'function';
+      button.title = button.disabled ? 'Fullscreen is unavailable in this browser' : 'Browser fullscreen';
+      if (id === 'cinema-open') button.textContent = 'Browser fullscreen';
+      button.onclick = async () => {
+        try {
+          if (document.fullscreenElement) await document.exitFullscreen();
+          else await root.requestFullscreen();
+        } catch {
+          button.title = 'Fullscreen was blocked by this browser';
+        }
+      };
+    }
+    return;
+  }
   const {tencent} = cinemaLinks(location.href);
   const enter = () => {
     beforeLeave();
