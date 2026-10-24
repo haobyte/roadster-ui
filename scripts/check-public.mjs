@@ -10,6 +10,7 @@ const allowed = new Set([
   '.gitignore', 'README.md', 'ASSETS.md', 'THIRD_PARTY_NOTICES.md', 'LICENSE',
   'index.html', '404.html', '_headers', 'package.json', 'package-lock.json', 'server.mjs',
   'data/ui-spec.json', 'licenses/three.txt', 'assets/roadster-body.glb',
+  'docs/screenshots/roadster-cockpit.png',
   ...['app.js','boost-audio.js','boost-jets.js','drive-airflow.js','icons.js','interface.css',
     'presentation.js','rear-assembly.js','rear-wing.js','scene.js','style.css','tesla-fullscreen.js',
     'tesla.css','touch-shift.js','track-setup.js','vehicle-settings.js'].map(name => `src/${name}`),
@@ -32,7 +33,7 @@ for (const name of files) {
   const file = path.join(root, name), info = await lstat(file);
   if (!info.isFile() || info.isSymbolicLink()) { errors.push(`Not a regular file: ${name}`); continue; }
   if (info.size > 20 * 1024 * 1024) errors.push(`Unexpectedly large file: ${name}`);
-  if (/\.(glb|webp)$/.test(name)) continue;
+  if (/\.(glb|webp|png)$/.test(name)) continue;
   const text = await readFile(file, 'utf8');
   for (const [label, pattern] of patterns) if (pattern.test(text)) errors.push(`${label} candidate in ${name}`);
 }

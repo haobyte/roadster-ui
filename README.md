@@ -1,31 +1,39 @@
 # Roadster Cockpit
 
-根据公开车机演示重建的网页交互原型，使用 Three.js 渲染三维车模。非 Tesla 官方应用，不连接真实车辆；控制、地图、遥测和充电数值均为模拟。
+A browser-based, interactive Roadster cockpit prototype reconstructed from public demonstrations, with a 3D vehicle rendered in Three.js.
 
-在线演示：[roadster-ui.pages.dev](https://roadster-ui.pages.dev/)。此源码分支保留 Pages 版本的核心功能，专辑封面改用代码生成的渐变图案，不包含视频裁剪封面、历史研究资料、开发调试页面、旧音频或服务器配置。线上演示尚未同步这项封面改动。
+This is an unofficial project with no affiliation with Tesla. It does not connect to a real vehicle: controls, maps, telemetry, and charging values are simulated.
 
-## 本地运行
+**[Try the live demo](https://roadster-ui.pages.dev/)**
 
-需要 Node.js 22 或更新版本、npm，以及支持 WebGL 的浏览器。
+## Preview
+
+![Roadster cockpit with a 3D vehicle, airflow visualization, raised rear wing, and red dashboard controls](docs/screenshots/roadster-cockpit.png)
+
+Example cockpit view with airflow visualization. The current source build uses generated gradient album artwork, which differs from the artwork shown in this screenshot and the deployed demo.
+
+## Features
+
+- Drag to orbit the vehicle, scroll to zoom, and use touch controls to shift gears. Camera views follow the selected menu.
+- Explore vehicle presets, lighting, aerodynamic components, charging limits, brightness, and themes.
+- Open the track interface and hold Boost for visual effects and synthesized audio.
+- Browse a simulated local map and a visual music player interface without music playback.
+- Use desktop and mobile layouts, with a Tencent Video fullscreen entry point.
+
+The fullscreen entry point leaves this site and redirects through Tencent Video and 1905. Availability and compatibility with the Tesla browser depend on those services. The app stores display preferences locally and has no account system or vehicle-data upload feature. Cloudflare processes network requests as the hosting provider and may collect network error diagnostics depending on its configuration.
+
+## Getting started
+
+Requires Node.js 22 or later, npm, and a browser with WebGL support.
 
 ```sh
 npm ci
 npm start
 ```
 
-打开 `http://127.0.0.1:4178`。`npm start` 先构建 `dist/`，然后启动仅监听本机、仅提供发布目录的静态服务器；源码改动后重新启动即可。可通过 `PORT` 环境变量修改端口。
+Open [http://127.0.0.1:4178](http://127.0.0.1:4178). `npm start` builds `dist/` and starts a static server that listens only on localhost and serves only the build output. Restart it after changing source files. Set the `PORT` environment variable to use a different port.
 
-## 功能
-
-- 拖动旋转车模、滚轮缩放、触摸换挡及菜单视角联动。
-- 车辆预设、灯光、气动部件、充电上限、亮度和主题演示。
-- 赛道界面与按住触发的 Boost 动效、合成音效。
-- 本地示意地图和静音音乐播放器界面。
-- 桌面及手机布局，腾讯视频全屏入口。
-
-全屏入口会离开本站，通过腾讯视频和 1905 中转；这些服务的可用性和车机兼容性不由本项目保证。页面只在本地保存显示偏好，没有账户或车辆数据上传功能。Cloudflare 作为托管方处理网络请求，并可能按平台配置收集网络错误诊断。
-
-## 构建和测试
+## Build and test
 
 ```sh
 npm run build
@@ -35,31 +43,38 @@ npm run test:browser
 npm run check:public
 ```
 
-`npm test` 会依次运行单元测试、构建和浏览器回归。浏览器结果写入被忽略的 `test-results/public-release/`；可通过 `QA_OUTPUT_DIR` 指定位置。无 GPU 的软件渲染会较慢，不能用其帧率代表正常浏览器表现。
+`npm test` runs the unit tests, build, and browser regression suite in sequence. Browser results are written to the ignored `test-results/public-release/` directory; set `QA_OUTPUT_DIR` to override it. Software rendering without a GPU can be slow, so its frame rate is not representative of normal browser performance.
 
-浏览器回归覆盖模型加载、主要交互、响应头、CSP 拦截和未发布路径。全屏跳转在测试中被本地拦截，不请求真实第三方页面；不代替 Tesla 实车验证。
+The browser suite covers model loading, core interactions, security headers, CSP enforcement, and excluded paths. Fullscreen redirects are intercepted locally during testing, without requesting the real third-party pages. These tests do not replace validation in an actual Tesla vehicle.
 
-## Pages 部署
+## Deploy to Cloudflare Pages
 
-构建命令为 `npm ci && npm run build`，发布目录为 `dist`。只上传该目录的内容。
+Use `npm ci && npm run build` as the build command and `dist` as the output directory. Upload only the contents of that directory.
 
-`_headers` 为静态页面和资源配置 CSP、权限策略、来源策略及防嵌入响应头；`404.html` 使未知路径返回 404。发布包只包含运行文件和 Three.js 许可证。此仓库不包含账户、部署令牌或真实服务器配置。
+[`_headers`](_headers) configures Content Security Policy, Permissions Policy, Referrer Policy, and framing restrictions for static pages and assets. [`404.html`](404.html) makes unknown paths return a 404 response. The build contains only runtime files and the Three.js license.
 
-浏览器需要下载 JS、图片和 GLB 才能显示页面，移除下载按钮不会阻止访问者保存这些文件。
+This repository retains the core Pages features and excludes research archives, development and debug pages, legacy audio, account credentials, deployment tokens, and private server configuration. The source build replaces video-derived album covers with generated gradients; the deployed demo has not yet received that change. Documentation screenshots are not included in the Pages build.
 
-## 目录
+Browsers must download JavaScript, images, and GLB assets to display the app. Removing download buttons does not prevent visitors from saving those files.
 
-- `src/`：页面逻辑、样式、三维场景及交互。
-- `assets/`：当前运行所需的车身模型；专辑封面由代码生成。
-- `data/ui-spec.json`：只包含运行时使用的界面数据。
-- `scripts/`：构建、静态预览、公开文件检查及测试。
-- `ASSETS.md`：模型、图片来源和授权状态。
-- `THIRD_PARTY_NOTICES.md`：第三方依赖声明。
+## Project structure
 
-## 授权状态
+- `src/` — application logic, styles, 3D scenes, and interactions.
+- `assets/` — the vehicle model required at runtime; album covers are generated in code.
+- `data/ui-spec.json` — interface data used at runtime.
+- `scripts/` — build tools, static preview server, public-file checks, and tests.
+- `docs/screenshots/` — screenshots used in this README.
+- [`ASSETS.md`](ASSETS.md) — asset provenance and licensing status.
+- [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) — third-party dependency notices.
 
-项目原创源代码及文档采用 [MIT License](LICENSE)，包括生成渐变封面的代码。第三方依赖保留其原有许可证；`assets/` 下的模型单独按 [ASSETS.md](ASSETS.md) 记录，不自动受代码许可证覆盖。当前分支是本地发布准备稿，模型的再分发授权范围仍需在公开前明确。
+## License and assets
 
-## 已知限制
+Original source code and documentation text are available under the [MIT License](LICENSE), including the code that generates gradient album covers. Third-party dependencies retain their own licenses.
 
-模型是依据影像制作的视觉近似，并非官方 CAD、精确扫描或工程参数；流线不是 CFD。原有本地偏好读取尚未严格校验类型：损坏的存储值可能使页面无法初始化或改变局部 HTML，清除本站存储可恢复。该问题需要先能写入同源浏览器存储，此次整理没有修改应用运行代码。
+The vehicle model and visual assets shown in screenshots are documented separately in [ASSETS.md](ASSETS.md) and are not automatically covered by the code license. The scope of redistribution rights for the model and its embedded textures remains unconfirmed. Tesla names and marks are not licensed by this project, and publication does not imply Tesla endorsement or authorization.
+
+## Known limitations
+
+The model is a visual approximation based on public imagery, not official CAD, a precise scan, or engineering data. The airflow visualization is illustrative, not a CFD simulation.
+
+Stored preferences are not yet strictly type-validated. Malformed values in same-origin browser storage may prevent initialization or alter parts of the page HTML; clearing the site's storage restores the defaults. Triggering this issue requires the ability to write to that browser storage.
