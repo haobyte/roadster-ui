@@ -1,14 +1,14 @@
-# 运行资源来源与授权状态
+# Asset provenance and licensing status
 
-这些记录用于区分项目代码与模型的来源，不是第三方权利人的授权证明。原始视频、发布会音频、视频裁剪封面和研究截图不属于本分支。
+These notes distinguish the provenance of the project code and assets. They are not evidence of permission from third-party rights holders. Original videos, presentation audio, video-derived album cover files, and research screenshots are not included in this branch.
 
-| 文件 | 来源 | 当前状态 |
+| File | Source | Current status |
 | --- | --- | --- |
-| `assets/roadster-body.glb` | 本项目依据公开影像进行的三维重建；视觉参考为 [Tesla 公开视频](https://x.com/Tesla/status/2113730362232680854/video/1) | 保留现有运行模型。模型、内嵌贴图及相关外观权利的公开授权范围仍待确认，未授予统一代码许可证。 |
-| `docs/screenshots/roadster-cockpit.png` | 项目维护者提供的界面截图 | 用于 README 展示，不进入 Pages 运行包。截图中的模型、标识和专辑封面不因截图收录而获得代码 MIT 许可证；当前源码使用代码生成的渐变封面。 |
+| `assets/roadster-body.glb` | A 3D reconstruction created in this project from public footage, with a [public Tesla video](https://x.com/Tesla/status/2113730362232680854/video/1) as a visual reference. | The existing runtime model is included. The scope of rights for public distribution of the model, its embedded textures, and the associated design remains unconfirmed. This asset is not covered by the code license. |
+| `docs/screenshots/roadster-cockpit.png` | An interface screenshot provided by the project maintainer. | Used in the README and excluded from the Pages runtime build. Including this screenshot does not place the model, marks, or album artwork it depicts under the code's MIT license. The current source build uses generated gradient album covers. |
 
-专辑封面由 `src/app.js` 中的 CSS 渐变代码生成，不加载图片文件。生成这些图案的代码适用项目 MIT 许可证。
+Album covers are generated with CSS gradients in `src/app.js`, without loading image files. The code that generates these patterns is covered by the project's MIT license.
 
-GLB 是视觉近似，不是 Tesla 官方 CAD 或精确扫描；未收录制作阶段的完整 Blender 文件。动画、灯光、内部演示结构和合成音效由 `src/` 中的代码在运行时创建。
+The GLB model is a visual approximation, not official Tesla CAD or a precise scan. The full Blender files used during development are not included. Animations, lighting, internal demonstration structures, and synthesized audio are created at runtime by code in `src/`.
 
-Tesla 名称及相关标识不属于项目代码授权范围。本项目为非官方演示，不表示获得 Tesla 认可或授权。
+Tesla names and related marks are outside the scope of the project's code license. This is an unofficial demonstration and does not imply Tesla endorsement or authorization.
