@@ -10,7 +10,7 @@ This is an unofficial project with no affiliation with Tesla. It does not connec
 
 ![Roadster cockpit with a 3D vehicle, airflow visualization, raised rear wing, and red dashboard controls](docs/screenshots/roadster-cockpit.png)
 
-Example cockpit view with airflow visualization. The current source build uses generated gradient album artwork, which differs from the artwork shown in this screenshot and the deployed demo.
+Example cockpit view with airflow visualization. The current source build and live demo use generated gradient album artwork, which differs from the artwork shown in this historical screenshot.
 
 ## Features
 
@@ -51,9 +51,11 @@ The browser suite covers model loading, core interactions, security headers, CSP
 
 Use `npm ci && npm run build` as the build command and `dist` as the output directory. Upload only the contents of that directory.
 
+The live demo is published through Cloudflare Pages Direct Upload. Releases are built from the same commit published on this repository's `main` branch; pushing to GitHub alone does not deploy the site. Before uploading a release, run the tests and public-file check above, then build from a clean checkout of the published commit. Verify the deployed files against that build after uploading.
+
 [`_headers`](_headers) configures Content Security Policy, Permissions Policy, Referrer Policy, and framing restrictions for static pages and assets. [`404.html`](404.html) makes unknown paths return a 404 response. The build contains only runtime files and the Three.js license.
 
-This repository retains the core Pages features and excludes research archives, development and debug pages, legacy audio, account credentials, deployment tokens, and private server configuration. The source build replaces video-derived album covers with generated gradients; the deployed demo has not yet received that change. Documentation screenshots are not included in the Pages build.
+This repository retains the core Pages features and excludes research archives, development and debug pages, legacy audio, account credentials, deployment tokens, and private server configuration. The source build and live demo use generated gradients instead of video-derived album covers. Documentation screenshots are not included in the Pages build.
 
 Browsers must download JavaScript, images, and GLB assets to display the app. Removing download buttons does not prevent visitors from saving those files.
 
