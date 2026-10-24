@@ -1,0 +1,164 @@
+/* v3 — source t008/t014/t038/t045/t081/t086. Screen coordinates are approximations. */
+body{font-family:"Helvetica Neue",Helvetica,Arial,sans-serif;--accent:#ff2035;--accent-rgb:255,32,53;font-variant-numeric:tabular-nums}
+#cockpit{font-size:clamp(12px,1.12vw,22px);font-weight:500;letter-spacing:-.025em}
+.icon{width:1.25em;height:1.25em;display:inline-block;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.icon-play,.icon-next,.icon-previous,.icon-flag{fill:currentColor;stroke-width:1}.icon-pause{stroke-width:4}
+button{transition:color .18s,background-color .18s,border-color .18s,box-shadow .18s}
+header{top:4.6%;left:4.3%;right:4%;font-weight:600;font-size:.88em}#gears button{letter-spacing:.08em;opacity:.65}#gears button.active{opacity:1}.status{gap:.35em}.header-actions{gap:.6em;font-weight:500}.header-actions button{opacity:.24;font-size:1em;padding:.2em}.header-actions button:hover,.header-actions button:focus-visible{opacity:1}
+.battery-bars{width:2.05em;height:.83em;letter-spacing:normal;margin-left:.35em;font-size:1em;background:repeating-linear-gradient(90deg,currentColor 0 2px,transparent 2px 3.5px);clip-path:polygon(0 0,89% 0,89% 25%,100% 25%,100% 75%,89% 75%,89% 100%,0 100%)}
+.gear-rail{left:4.2%;top:10.7%;width:3.7%;height:53%;background-size:14px 15px;background-position:center;background-image:radial-gradient(rgba(var(--accent-rgb),.6) .8px,transparent 1px)}.gear-rail>button{font-size:1.8em;padding:.6em .1em;background:transparent}.gear-rail .park{display:none}.car-top{height:14%;top:43%;width:55%;stroke-width:2.2}
+#scene-slot{transition:left .82s cubic-bezier(.4,0,.2,1),width .82s cubic-bezier(.4,0,.2,1),top .82s cubic-bezier(.4,0,.2,1),height .82s cubic-bezier(.4,0,.2,1)}
+#content{inset:17% 4% 19% 12%;}
+.dynamics-layout{grid-template-columns:15% 42%;gap:1.5%;align-items:center}.presets{gap:1.3vh}.preset{min-height:0;height:8.7vh;max-height:100px;padding:1em 1.1em;background:linear-gradient(100deg,rgba(var(--accent-rgb),.095),rgba(var(--accent-rgb),.025));border-top:1.5px solid rgba(var(--accent-rgb),.7)}.preset b{font-size:.91em;font-weight:650}.preset small{font-size:.6em;font-weight:600;opacity:.8;margin-bottom:.7em}.preset.selected{border:1px solid var(--accent);box-shadow:0 0 10px rgba(var(--accent-rgb),.18),inset 0 0 18px rgba(var(--accent-rgb),.12);background:rgba(var(--accent-rgb),.18)}
+.track-entry{height:8.7vh;padding:.65em 1em;margin-top:.8vh;font-size:.87em;background:rgba(var(--accent-rgb),.055);border-top-width:1.5px;font-weight:600}.track-entry span{margin-bottom:.25em}.track-entry .icon{width:1.2em;height:1.2em}
+.controls-list{gap:1.15vh;align-self:center}.control-row{min-height:0;height:8.7vh;max-height:100px;padding:0 1em;border-top:1.5px solid var(--line);background:linear-gradient(90deg,rgba(var(--accent-rgb),.065),rgba(var(--accent-rgb),.018));gap:.5em}.control-row>label{font-size:.82em;font-weight:600}.segments{gap:.35em}.segments button{font-size:.77em;padding:.75em .7em;min-height:0;letter-spacing:-.025em;font-weight:550}.segments button.selected{box-shadow:0 0 7px rgba(var(--accent-rgb),.15),inset 0 0 12px rgba(var(--accent-rgb),.09)}.control-row.pair{padding:0;background:none;border:0;gap:1em}.pair button{height:100%;border-top:1.5px solid var(--line);background:rgba(var(--accent-rgb),.06);padding:0 1em;font-size:.78em;font-weight:550}
+.summary-list{width:80%;gap:0;margin-left:.4em;font-size:.85em}.summary-row{border-top:1px solid rgba(var(--accent-rgb),.24);border-bottom:0;padding:1.3em .5em;font-weight:550}.summary-row span:last-child{font-weight:650}
+.display-panel{left:0;top:4%;width:39%;gap:3.5vh}.setting>label{font-size:.88em;font-weight:550;margin-bottom:.55em}.setting .segments button{font-size:.85em;padding:1.25em .5em;border-color:rgba(var(--accent-rgb),.24);font-weight:600}.setting .segments{background:rgba(var(--accent-rgb),.14)}.setting .segments button.selected{background:rgba(var(--accent-rgb),.31);box-shadow:0 0 16px rgba(var(--accent-rgb),.28),inset 0 0 20px rgba(var(--accent-rgb),.1)}.display-panel .setting:nth-child(n+3) .segments{width:70%}
+.range-row{position:relative;height:4.4em;padding:0;background:linear-gradient(90deg,rgba(var(--accent-rgb),.4) var(--brightness,100%),rgba(var(--accent-rgb),.12) var(--brightness,100%));border:0;border-top:1px solid var(--line)}.range-row input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0}.range-row:focus-within{outline:2px solid var(--accent);outline-offset:3px}.range-row output{margin-left:auto;padding-right:1.4em;font-size:.85em;pointer-events:none}
+.charging-panel{left:18%;right:17%;bottom:13%;height:12%}.charging-panel label{font-size:.75em;font-weight:600;margin-bottom:.45em}.charging-panel input{height:4.2vh;border:0;border-top:1px solid rgba(var(--accent-rgb),.5);background:repeating-linear-gradient(90deg,transparent 0 calc(5% - 1px),#ffffff50 calc(5% - 1px) 5%),linear-gradient(to right,#7fff00 var(--charge),#0c1008 var(--charge));border-radius:0}.charging-panel input::-webkit-slider-thumb{height:5vh;width:3px;background:var(--accent);box-shadow:0 0 0 4px #000}
+footer{left:4.2%;right:4%;bottom:2.6%;height:8.1%;grid-template-columns:23% 1fr 17%;gap:1.1%}footer>div,footer>nav{border-top:1px solid rgba(var(--accent-rgb),.85)}#main-nav button{flex:1;font-size:.87em;font-weight:550;opacity:.8;padding:1.2em 0}#main-nav button.selected{font-weight:650;opacity:1}#main-nav button.selected:before{display:none}#main-nav button.selected:after{content:'';position:absolute;width:7px;height:7px;top:-4px;left:calc(50% - 4px);background:var(--accent);transform:rotate(45deg)}
+#subnav{left:32%;right:23%;bottom:10.7%;height:6.8%;align-items:center;gap:0}#subnav button{flex:1;font-size:.86em;padding:1.2em .4em;opacity:.65}#subnav button.selected{opacity:1}#subnav button.selected:after{bottom:0;left:calc(50% - 5px);width:9px;height:9px;background:#000;border-width:1.5px}
+#cockpit[data-page=Vehicle] #main-nav button.selected:after{display:none}.temperature{font-size:1.9em}.temperature .icon{width:.5em;height:.65em;stroke-width:2.6}.temperature button{padding:.2em}
+#player{left:30%;right:24%;bottom:11.2%;height:5.8%;font-size:.74em;gap:1em}.album-mini{width:28px;height:28px}.song{gap:2px;min-width:28%;font-weight:550}.song b{font-weight:600}.song small{font-size:.96em}.play{font-size:1em}#player button{padding:.3em;font-size:.95em}#seek{bottom:-7px}#play-time{font-size:.83em}
+#cockpit[data-page=Vehicle] #player,#cockpit[data-page=Climate] #player{left:auto;right:4.7%;width:13.5%;bottom:11.5%;height:4%;justify-content:space-between}#cockpit[data-page=Climate] #player .song,#cockpit[data-page=Climate] #player .album-mini,#cockpit[data-page=Climate] #play-time,#cockpit[data-page=Climate] #seek{display:none}
+.prototype-mark{bottom:.7%;font-size:6px;opacity:.6;letter-spacing:.12em}
+#cockpit[data-page=Listen] #content{inset:12% 4% 11% 17%}.album-hero{height:39%;margin:0;gap:1.5em;width:49%;align-items:stretch}.album-hero>.album-art{height:100%;width:auto;aspect-ratio:1;max-width:43%}.album-copy{display:flex;flex-direction:column;justify-content:center;flex:1;min-width:0}.album-copy small{font-size:.75em;font-weight:550}.album-copy h2{font-size:1.75em;font-weight:650;margin-top:.5em;letter-spacing:-.045em;white-space:nowrap}.album-copy p{font-size:1.65em;font-weight:400;opacity:.9;letter-spacing:-.04em}.play-album{width:100%;margin-top:auto;background:rgba(var(--accent-rgb),.25);text-align:center;font-weight:600;padding:1.25em .6em;border:1px solid rgba(var(--accent-rgb),.3)}.album-play{float:right}.album-play .icon{width:1em;height:1em}.listen-panel h3{font-size:.81em;margin:2vh 0 .8vh;font-weight:600}.album-row{gap:.8em;margin-top:0}.album-card{width:14%;}.album-card small{font-size:.68em;font-weight:550}.album-card span{font-size:.65em;opacity:.85}.made-for-you{opacity:.45}.album-art{position:relative;overflow:hidden}.album-art:after{content:'';position:absolute;inset:0;background:linear-gradient(0deg,#0002,transparent);border:1px solid #ffffff12}
+#cockpit[data-page=Climate] #content{inset:6% 4% 10.7% 4.2%}.climate-tabs{left:40%;top:-1%;font-size:.8em;gap:1.4em}.climate-tabs button{padding:0 .3em;font-weight:600}.climate-tabs button.selected{background:none}.cabin-switch{position:absolute;top:48%;right:1%;padding:1em;pointer-events:auto}.cabin-switch.passenger{right:auto;left:7%}.climate-controls{position:absolute;bottom:0;left:0;right:17%;border-bottom:0;padding:.7em 0;display:grid;grid-template-columns:28% 1fr;gap:1em}.climate-power,.climate-functions{display:flex;align-items:center;justify-content:space-around}.climate-controls button{font-size:.85em;padding:.55em .7em}.climate-controls button.selected{background:none;filter:drop-shadow(0 0 3px rgba(var(--accent-rgb),.4))}.climate-controls button.selected:after{content:'';display:block;height:2px;width:12px;margin:5px auto -7px;background:var(--accent)}.climate-power button:last-child{font-size:.85em}.fan-control{gap:1em}.fan-control>span{display:flex;flex-direction:column;align-items:center}.fan-control small{font-size:.63em;margin-bottom:3px}.fan-control .icon{width:1.1em;height:1.1em}
+.map-controls .icon{width:1em;height:1em;margin-right:.3em}
+@media(max-width:1000px){.control-row{padding:0 .55em}.segments button{padding:.7em .4em;font-size:.7em}.control-row>label{font-size:.75em}.album-copy h2{font-size:1.5em}.album-copy p{font-size:1.3em}}
+@media(max-width:650px) and (orientation:portrait){
+ #cockpit{font-size:12px}header{top:3%;left:5%;right:5%;font-size:.8em}.header-actions{gap:.25em}.gear-rail{left:4%;width:7%;top:18%;height:37%}.car-top{width:75%;height:20%;top:40%}.gear-rail>button{padding:.2em 0}
+ #cockpit[data-page=Vehicle] #content{inset:43% 5% 25% 14%}.dynamics-layout{grid-template-columns:27% 70%;gap:3%}.presets{gap:5px}.preset{height:35px;padding:5px 7px}.preset small{font-size:.5em;margin-bottom:2px}.preset b{font-size:.75em}.track-entry{height:32px;font-size:.7em;padding:5px;margin-top:3px}.track-entry span{display:none}.controls-list{gap:4px}.control-row{height:31px;padding:0 3px}.control-row>label{font-size:.57em}.segments{gap:1px}.segments button{font-size:.49em;padding:5px 3px}.pair button{font-size:.52em;padding:3px}.control-row.pair{gap:5px}.summary-list{width:100%;font-size:.6em;margin:0}.summary-row{padding:1.3em .3em}
+ footer{left:5%;right:5%;height:14%;bottom:4%;grid-template-columns:1fr 1fr}#main-nav button{font-size:.78em;padding:.9em .3em}.temperature{border:0}.temperature{font-size:1.5em}#subnav{left:14%;right:5%;bottom:20%;height:5%;font-size:.8em}#subnav button{font-size:.8em;padding:.7em .2em}#player{left:16%;right:7%;bottom:24%;height:5%;font-size:.6em}.album-mini{width:22px;height:22px}.song{min-width:22%}#player button{padding:0}.display-panel{top:0;width:100%;gap:10px}.setting>label{font-size:.65em;margin-bottom:4px}.setting .segments button{padding:8px;font-size:.65em}.range-row{height:30px}.range-row output{font-size:.65em}.charging-panel{left:0;right:0;bottom:20%;height:30%}.charging-panel input{height:25px}.lights-panel{width:100%;top:0}.prototype-mark{font-size:5px}
+ #cockpit[data-page=Listen] #content{inset:14% 5% 27% 15%}.album-hero{height:27%;width:85%;gap:12px}.album-hero>.album-art{max-width:35%;height:auto}.album-copy h2{font-size:1.3em}.album-copy p{font-size:1.15em;margin-bottom:5px}.album-copy small{font-size:.6em}.play-album{padding:7px;font-size:.65em}.album-row{gap:12px;flex-wrap:wrap}.album-card{width:27%}.album-card small{font-size:.55em}.album-card span{font-size:.5em}.made-for-you{display:none}.listen-panel h3{font-size:.65em}
+ #cockpit[data-page=Climate] #content{inset:12% 5% 22% 12%}.climate-tabs{top:0;left:20%;font-size:.8em}.climate-controls{right:0;bottom:2%;display:flex;flex-wrap:wrap;gap:5px}.climate-power{width:25%}.climate-functions{width:70%;gap:3px}.climate-controls button{font-size:.7em;padding:4px}.fan-control{gap:2px}.cabin-switch{top:43%;right:0}.cabin-switch.passenger{left:0}#cockpit[data-page=Climate] #player{display:none}
+}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;animation:none!important}}
+/* Match the separate bottom action cards without inheriting the row's old display rule. */
+.control-row.pair button{display:flex;align-items:center;justify-content:space-between}.preset:hover,.track-entry:hover{background:rgba(var(--accent-rgb),.12)}
+#main-nav button:hover{background:transparent;text-shadow:0 0 8px rgba(var(--accent-rgb),.3)}
+/* The header spans the screen but must not block Driver / Passenger in its empty center. */
+header{pointer-events:none}header>.status,header>.header-actions,header>#race-header:not(:empty){pointer-events:auto}
+#subnav:empty{display:none}
+
+/* Touch shift: keep the source rail silhouette, expose feedback during contact. */
+.gear-rail{touch-action:none;user-select:none;-webkit-user-select:none;cursor:ns-resize;--shift-y:0px;min-width:32px}
+.gear-rail::before{content:"";position:absolute;inset:10% -4px;border-radius:24px;background:linear-gradient(90deg,transparent,rgba(var(--accent-rgb),.1),transparent);opacity:0;transition:opacity .2s;pointer-events:none}
+.gear-rail.dragging::before{opacity:1}.gear-rail:focus-visible:not([data-pointer-focus]){outline:1px solid var(--line);outline-offset:6px}
+.gear-rail .car-top{pointer-events:none;transform:translateY(var(--shift-y));transition:transform .36s cubic-bezier(.2,.8,.2,1),filter .2s}
+.gear-rail.dragging .car-top{transition:filter .2s;filter:drop-shadow(0 0 5px var(--accent))}
+.gear-rail.armed .car-top{filter:drop-shadow(0 0 9px var(--accent))}
+.shift-gear{position:absolute;top:61%;font-size:.65em;font-weight:600;pointer-events:none;transition:opacity .2s}
+.dragging .shift-gear{opacity:0}.shift-feedback{position:absolute;top:49%;left:calc(100% + 8px);width:90px;font-size:10px;letter-spacing:.04em;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;color:var(--accent)}
+.dragging .shift-feedback{opacity:1}.gear-rail>button{opacity:.55;transition:opacity .2s,filter .2s;position:relative;z-index:1}
+.gear-rail>button[aria-pressed=true],.gear-rail[data-preview=D]>[data-gear=D],.gear-rail[data-preview=R]>[data-gear=R]{opacity:1;filter:drop-shadow(0 0 5px var(--accent))}
+@media(prefers-reduced-motion:reduce){.gear-rail .car-top,.gear-rail::before,.shift-feedback{transition:none}}
+.gear-rail[data-pointer-focus]{outline:none}
+
+/* Tesla pilot film · 2026-10-24 (CST). Visual proportions, not factory measurements. */
+body{--accent:#ff2923;--accent-rgb:255,41,35}
+#cockpit{--muted:rgba(var(--accent-rgb),.55);--line:rgba(var(--accent-rgb),.4)}
+.control-row.pair button[aria-pressed=true]{border:1px solid var(--accent);background:rgba(var(--accent-rgb),.16);box-shadow:inset 0 0 20px rgba(var(--accent-rgb),.1)}
+.dashboard-balance{text-align:left;display:block;width:100%}
+.dashboard-balance:hover{background:rgba(var(--accent-rgb),.09)}
+.dashboard-balance .balance-numbers{font-size:1em;margin-top:1.2em}
+.track-fan{text-align:left}.track-fan p{margin:.6em 0 0}
+.g-meter>span{position:absolute;font-size:.8em}.g-left{left:-7%;top:47%}.g-right{right:-7%;top:47%}.g-bottom{bottom:0;left:44%}
+.track-setup{width:84%;height:100%;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:26% 1fr 12% 5%;gap:2% 1.4%;min-height:0}
+.track-presets{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.4%}
+.track-presets .preset{height:100%;max-height:none;min-height:0;display:flex;flex-direction:column;justify-content:space-between;padding:1.2em;font-size:1.05em}
+.track-presets .preset b{font-size:1.25em;line-height:1.1}
+.setup-wings{display:grid;grid-template-rows:repeat(4,minmax(0,1fr));gap:5%;min-width:0}
+.setup-control{display:flex;align-items:center;justify-content:space-between;gap:.7em;padding:0 1em;border-top:1px solid var(--line);background:rgba(var(--accent-rgb),.075);min-width:0;font-size:.9em}
+.setup-control>span{font-weight:600;white-space:nowrap}.setup-control .segments{gap:.2em}.setup-control .segments button{font-size:.85em;padding:.9em .6em;min-height:40px}
+.setup-balances{display:grid;grid-template-rows:1fr 1fr;gap:5%;min-height:0}
+.trim-card{min-height:0;display:flex;flex-direction:column;justify-content:space-between;padding:1em 1.2em .4em;background:rgba(var(--accent-rgb),.075);border-top:1px solid var(--line)}
+.trim-card h3{margin:0;font-size:.9em;font-weight:600}
+.trim-value{display:grid;grid-template-columns:1fr 40px 1.8fr 40px 1fr;align-items:center;gap:.2em}
+.trim-value>div{display:grid;gap:.2em;font-size:.85em}.trim-value>div:last-child{text-align:right}.trim-value small{font-size:.7em;opacity:.6;letter-spacing:.04em}
+.trim-value output{text-align:center;font:400 clamp(36px,5vw,86px)/1 ui-monospace,SFMono-Regular,Consolas,monospace;letter-spacing:-.08em;font-variant-numeric:tabular-nums;text-shadow:0 0 24px rgba(var(--accent-rgb),.12)}
+.trim-value button{height:44px;min-width:36px;opacity:.55;font-size:1.5em}.trim-value button:hover{opacity:1}.trim-value button:disabled{opacity:.15;cursor:default}
+.trim-scale{display:flex;justify-content:center;gap:0}.trim-scale button{width:28px;height:30px;display:grid;place-items:center;padding:0}.trim-scale i{width:5px;height:5px;background:currentColor;opacity:.2;transform:rotate(45deg)}.trim-scale [aria-pressed=true] i{opacity:1;box-shadow:0 0 8px rgba(var(--accent-rgb),.5)}
+.setup-switches{grid-column:1/-1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1.4%}
+.setup-switches button{display:flex;align-items:center;justify-content:space-between;gap:.5em;padding:1em;font-size:.86em;text-align:left;border:1px solid transparent;border-top-color:var(--line);background:rgba(var(--accent-rgb),.075)}
+.setup-switches button[aria-pressed=true]{border-color:var(--accent);background:rgba(var(--accent-rgb),.13)}
+.setup-switches b{font-weight:600}
+.session-tools{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-end;gap:1.2em;font-size:.65em;min-height:28px}.session-tools>span{margin-right:auto;letter-spacing:.12em;opacity:.5}.session-tools button{padding:.5em}
+@media(min-width:651px), (orientation:landscape){
+ #cockpit{font-size:clamp(12px,1.2vw,24px);letter-spacing:-.025em}
+ header{top:1.8%;left:2.2%;right:2.2%;font-size:.95em}#gears button{opacity:.42}#gears button.active{opacity:1}
+ .gear-rail{left:1.9%;top:8.5%;width:3.2%;height:49%;background-size:13px 17px}.gear-rail .car-top{width:65%;height:15%}.gear-rail>button{padding:.45em .1em}
+ #cockpit[data-page=Vehicle] #content{inset:14% 2.5% 21.5% 8.2%}
+ .dynamics-layout{grid-template-columns:12.3% 39%;gap:1.35%}.presets{gap:1.7vh}.preset{height:8.7vh;padding:1em 1.1em;border-top-color:rgba(var(--accent-rgb),.55);background:linear-gradient(100deg,rgba(var(--accent-rgb),.10),rgba(var(--accent-rgb),.045))}.preset b{font-size:1em}.preset.selected{background:rgba(var(--accent-rgb),.18);box-shadow:0 0 22px rgba(var(--accent-rgb),.13),inset 0 0 24px rgba(var(--accent-rgb),.09)}
+ .track-entry{margin-top:1.7vh;background:rgba(var(--accent-rgb),.075);font-size:.95em}
+ .controls-list{gap:1.7vh}.control-row{height:8.7vh;background:rgba(var(--accent-rgb),.075);padding:0 1em}.control-row>label{font-size:.9em}.control-row .segments button{font-size:.8em;padding:.85em .65em}.control-row.pair{gap:1em}.control-row.pair button{font-size:.86em;background:rgba(var(--accent-rgb),.075)}
+ .summary-list{width:100%;padding-right:9%;font-size:.95em}.summary-row{padding:1em .25em;border:0}.summary-row span:first-child{opacity:.66}
+ footer{left:2.2%;right:2.2%;bottom:1.8%;height:8%;grid-template-columns:19% 1fr 19%;gap:1.3%}#main-nav button{font-size:.95em}footer>div,footer>nav{border-top-color:rgba(var(--accent-rgb),.65)}
+ #subnav{left:21.6%;right:22.3%;bottom:9.8%;height:6.8%}#subnav button{font-size:.95em}#subnav button.selected:after{bottom:-4px}
+ #player{left:21.6%;right:22.3%;bottom:10.2%;height:5.4%;font-size:.8em}#player button{min-width:36px;min-height:36px}#seek{bottom:-4px}
+ #cockpit[data-page=Vehicle] #player,#cockpit[data-page=Climate] #player{right:3.3%;width:16%;bottom:10.2%;height:5.4%}
+ .temperature{font-size:2.2em;font-weight:400}.prototype-mark{left:2.2%;bottom:.5%;opacity:.45}
+ #cockpit[data-page=Listen] #content{inset:12% 3% 18% 8.2%}.album-hero{height:40%;width:49%;gap:1.7em}.album-copy h2{font-size:1.9em}.album-copy p{font-size:1.8em}.album-copy small{font-size:.85em}.listen-panel h3{font-size:.95em;margin-top:2.5vh;margin-bottom:1.5vh}.album-row{gap:1.2em}.album-card{flex:1}.album-card small{font-size:.78em}.album-card span{font-size:.72em}.play-album{border:0;border-top:1px solid var(--line);background:rgba(var(--accent-rgb),.12)}
+ #cockpit[data-page=Track] #content{inset:10% 1.8% 13% 1.8%}.track-layout{grid-template-columns:19% 19% 40% 19%;gap:1%}
+ .telemetry-col{gap:2.5%}.telemetry-col.first{grid-template-rows:repeat(4,minmax(0,1fr)) 3.4fr}.telemetry-col.second{grid-template-rows:1fr 3.25fr 3.4fr}.telemetry-col.middle{grid-template-rows:58% 39.5%}.telemetry-col.last{grid-template-rows:42% 12% 12% 12% 12%}
+ .tile{font-size:.9em;padding:1em;border-color:rgba(var(--accent-rgb),.15);background:rgba(var(--accent-rgb),.028);font-weight:500}.tile-title span:last-child{font-weight:600}.bar{height:12px;left:6%;right:6%;bottom:18%;border-color:rgba(var(--accent-rgb),.24);background:repeating-linear-gradient(90deg,transparent 0 calc(25% - 1px),rgba(var(--accent-rgb),.2) calc(25% - 1px) 25%)}.bar i{height:6px;margin-top:4px}
+ .wheel-readings svg{opacity:.4}.wheel-readings{font-size:1em;inset:28% 8% 8%}.g-meter{border-style:dashed;border-color:rgba(var(--accent-rgb),.22);max-height:65%;inset:24% 20% 14%}
+ .aero-status{height:74%;align-content:space-evenly;gap:.5em;margin-top:1em;font-size:.88em}.aero-status div{gap:.4em}.aero-status b{text-align:right;font-weight:500}.session-content{height:80%;margin-top:1em;grid-template-columns:30% 1fr;gap:5%}.lap-best{align-content:space-around}.lap-best b{font-size:1.45em}.lap-table{align-content:space-evenly;gap:.4em 1.2em}.lap-table div{font-size:.95em}
+ .track-bottom{bottom:-14%;height:11%;grid-template-columns:19% 1fr 19%}.track-bottom>button{font-size:.95em;padding:1em}.track-bottom>button:first-child,.track-bottom>button:last-child{text-align:center}.boost{border-bottom-width:3px;background:linear-gradient(0deg,rgba(var(--accent-rgb),.19),rgba(var(--accent-rgb),.015));gap:1em}.boost small{font-size:.5em;letter-spacing:.08em;opacity:.45}
+ #race-header{font-size:.95em;position:absolute;left:50%;transform:translateX(-50%);white-space:nowrap}.track-label{top:-3.2%;bottom:auto;font-size:.45em;opacity:.45}.switches{padding:0}.switches button{padding:.8em;border-color:rgba(var(--accent-rgb),.15)}
+ #cockpit[data-setup=true] .track-presets .preset{height:100%;max-height:none}#cockpit[data-setup=true] .track-label{display:none}
+}
+@media(min-width:651px) and (max-width:1100px), (orientation:landscape) and (max-height:650px){
+ .control-row{padding:0 .65em}.control-row>label{font-size:.8em}.control-row .segments button{font-size:.74em;padding:.8em .45em}.track-setup{width:91%}.setup-control{padding:0 .65em;font-size:.8em}.setup-control .segments button{padding:.6em .35em;font-size:.8em}.track-presets .preset{padding:1em}.track-presets .preset b{font-size:1.1em}.trim-card{padding:.7em}.trim-value output{font-size:46px}.trim-scale button{height:24px}.aero-status{font-size:.82em}.track-bottom>button{font-size:.86em}.boost small{display:none}
+}
+@media(max-width:650px) and (orientation:portrait){
+ #cockpit[data-page=Track] #content{inset:10% 4% 17%}
+ .track-setup{display:flex;flex-direction:column;width:100%;height:100%;overflow:auto;overscroll-behavior:contain;gap:14px;padding:4px 4px 12px;scrollbar-width:thin;scrollbar-color:var(--line) transparent}.track-setup>*{flex-shrink:0}
+ .track-presets{grid-template-columns:1fr 1fr;gap:10px}.track-presets .preset{height:88px;min-height:88px;padding:12px}.track-presets .preset b{font-size:1.2em}.track-presets .preset small{font-size:.65em}
+ .setup-wings{gap:8px;grid-template-rows:repeat(4,auto)}.setup-control{min-height:62px;display:grid;grid-template-columns:1fr;padding:8px 10px;gap:4px;font-size:12px}.setup-control .segments{justify-content:space-between}.setup-control .segments button{font-size:11px;flex:1;min-height:36px;padding:7px 5px}
+ .setup-balances{gap:10px;grid-template-rows:repeat(2,144px);min-height:298px}.trim-card h3{font-size:12px}.trim-value output{font-size:54px}.trim-value>div{font-size:12px}.trim-value button{font-size:20px}.trim-scale button{width:36px;height:36px}
+ .setup-switches{grid-template-columns:1fr 1fr;gap:8px}.setup-switches button{min-height:52px;font-size:11px;padding:10px}.session-tools{font-size:10px;flex-wrap:wrap;justify-content:space-between;gap:4px}.session-tools>span{width:100%}.session-tools button{min-height:40px}
+ .track-bottom{bottom:-14%;height:11%;grid-template-columns:20% 55% 23%;font-size:12px;gap:1%}.track-bottom>button{padding:5px;font-size:10px}.boost{display:grid;gap:4px;align-content:center}.boost small{display:none}.boost span{font-size:9px}.track-label{bottom:-18%;font-size:6px}
+ .dashboard-balance .balance-numbers{font-size:1em}.g-meter>span{font-size:5px}.track-fan p{font-size:7px}
+ #cockpit[data-page=Track] header{font-size:12px}#cockpit[data-page=Track] #race-header{font-size:9px}
+}
+.listen-panel{overflow-y:auto;overscroll-behavior:contain;scrollbar-width:none;padding-bottom:1em}.listen-panel::-webkit-scrollbar{display:none}
+
+/* Shared vehicle hotspots and anchored component controls. */
+#hotspots{position:absolute;inset:0;pointer-events:none;z-index:6}
+.hotspot-leaders{position:absolute;inset:0;width:100%;height:100%;overflow:visible;stroke:currentColor;stroke-width:1;opacity:.4;pointer-events:none}
+.part-hotspot{position:absolute;width:38px;height:38px;transform:translate(-50%,-50%);padding:11px;pointer-events:auto;display:grid;place-items:center;touch-action:manipulation}
+.part-hotspot:active{transform:translate(-50%,-50%)}
+.part-hotspot i{width:10px;height:10px;border:1px solid currentColor;transform:rotate(45deg);background:rgba(var(--accent-rgb),.17);box-shadow:0 0 0 5px rgba(var(--accent-rgb),.05)}
+.part-hotspot[aria-expanded=true] i,.part-hotspot:hover i,.part-hotspot:focus-visible i{background:var(--accent);box-shadow:0 0 0 6px rgba(var(--accent-rgb),.2)}
+.part-hotspot span{position:absolute;left:32px;white-space:nowrap;font-size:10px;background:#080808e8;border:1px solid var(--line);padding:5px 8px;opacity:0;pointer-events:none}
+.part-hotspot:hover span,.part-hotspot:focus-visible span{opacity:1}
+#part-menu{position:absolute;z-index:12;width:212px;background:#100507ee;border:1px solid var(--accent);box-shadow:0 12px 45px #0009;padding:12px;color:var(--accent);font-size:13px}
+.part-menu-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.part-menu-heading b{font-weight:500}.part-menu-heading button{font-size:22px;width:32px;height:32px;padding:0}
+#part-menu .segments{display:grid;gap:7px}#part-menu .segments button,#part-menu>button{font-size:12px;min-height:36px;text-align:left;padding:8px 10px;border:1px solid var(--line);width:100%}
+#part-menu [aria-pressed=true]{border-color:var(--accent);background:rgba(var(--accent-rgb),.14)}
+#part-menu button:focus-visible,.part-hotspot:focus-visible{outline:2px solid currentColor;outline-offset:3px}
+.lights-panel .segments{flex-wrap:wrap}.lights-panel .segments button{white-space:normal}
+@media(max-width:650px) and (orientation:portrait){
+ #part-menu{left:16%!important;right:6%;top:50%;width:auto;max-height:25%;overflow:auto;font-size:12px;padding:9px}
+ #part-menu .segments{grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+ #part-menu .segments button{font-size:10px;min-height:36px}
+ .part-menu-heading{margin-bottom:6px}.part-hotspot span{display:none}
+ .dynamics-layout{align-items:start;min-height:0}
+ .dynamics-layout .presets .preset{height:43px}.dynamics-layout .preset b{font-size:11px}.dynamics-layout .preset small{font-size:7px}
+ .dynamics-layout .track-entry{height:43px;font-size:10px}
+ .dynamics-layout .controls-list{height:100%;min-height:0;overflow-y:auto;overflow-x:hidden;align-content:start;align-self:start;gap:7px;padding-right:4px;scrollbar-width:thin;scrollbar-color:var(--accent) #160708}
+ .controls-list .control-row{height:auto;min-height:68px;max-height:none;display:grid;grid-template-columns:1fr;padding:6px;gap:4px}
+ .controls-list .control-row>label{font-size:11px}.controls-list .segments{width:100%;display:flex}
+ .controls-list .segments button{flex:1;min-width:0;min-height:36px;font-size:10px;padding:5px 3px;white-space:normal}
+ .controls-list .control-row.pair{grid-template-columns:1fr 1fr;min-height:60px;padding:0}
+ .controls-list .pair button{font-size:10px;min-height:56px;padding:5px;flex-direction:column;justify-content:center;gap:5px}
+}
+@media(max-width:650px) and (max-height:720px) and (orientation:portrait){
+ #part-menu{padding:6px}
+ .part-menu-heading{margin-bottom:4px}
+}
+
+/* Keep the held Boost control mounted while its full vehicle preview is visible. */
+#cockpit[data-boost-preview=true] .track-layout,#cockpit[data-boost-preview=true] .track-setup{visibility:hidden;pointer-events:none}

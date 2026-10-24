@@ -1,0 +1,37 @@
+# Installed packages and generated output
+/node_modules/
+/dist/
+/build/
+/coverage/
+/test-results/
+/playwright-report/
+.cache/
+__pycache__/
+*.py[cod]
+
+# Private development archives are not part of this public source branch.
+/qa/
+/deploy/
+/assets/audio/
+/assets/roadster-complete.glb
+/delivery-manifest.json
+
+# Local configuration, credentials and editor files
+.env
+.env.*
+*.local
+*.pem
+*.key
+*.p12
+*.pfx
+*.log
+*.pid
+*.tmp
+*.bak
+*.blend1
+*.blend2
+.DS_Store
+._*
+*.swp
+*.swo
+*~

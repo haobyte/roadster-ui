@@ -1,0 +1,26 @@
+{
+  "name": "roadster-cockpit-prototype",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npm run build && node server.mjs",
+    "build": "node scripts/build-static.mjs",
+    "test": "npm run test:unit && npm run build && npm run test:browser",
+    "test:unit": "node --test scripts/*.test.mjs",
+    "test:browser": "node scripts/public-release-test.cjs",
+    "check:public": "node scripts/check-public.mjs"
+  },
+  "dependencies": {
+    "three": "0.180.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.25.12",
+    "playwright": "1.62.1"
+  },
+  "description": "Unofficial interactive Roadster cockpit reconstruction",
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  }
+}

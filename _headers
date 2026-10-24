@@ -1,0 +1,10 @@
+# Applied to all static responses on the production and preview domains.
+# Inline styles are required by the cockpit controls and the standalone 404 page.
+# Scripts remain same-origin only; no inline scripts or eval are allowed.
+# GLB embedded textures are fetched from browser-local blob URLs by Three.js.
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; connect-src 'self' blob:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), fullscreen=(self)
+  Referrer-Policy: no-referrer
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
