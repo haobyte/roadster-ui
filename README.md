@@ -16,6 +16,7 @@ Example cockpit view with airflow visualization. The current source build and li
 
 ## Features
 
+- Watch the vehicle assemble from particles from nose to tail, with glowing grid seams and welding sparks. A startup sequence turns the view, raises the rear wing, runs airflow and wheel motion, then returns to the parked view. Controls interrupt it, and reduced-motion preferences skip it. The selected gear stays unchanged.
 - Drag to orbit the vehicle, scroll to zoom, and use touch controls to shift gears. Camera views follow the selected menu.
 - Explore vehicle presets, lighting, aerodynamic components, charging limits, brightness, and themes.
 - Open the track interface and hold Boost for visual effects and synthesized audio.

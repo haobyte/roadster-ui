@@ -28,12 +28,12 @@ const segment=(key,options,value)=>`<div class="segments">${options.map(o=>`<but
 const svgCar=`<svg viewBox="0 0 60 130" aria-hidden="true"><path d="M12 8 Q30 -2 48 8 L54 35 52 112 Q49 128 30 128 Q11 128 8 112 L6 35Z M12 35 48 35 44 59 16 59Z M16 72 44 72 48 108 12 108Z M15 9 16 121 M45 9 44 121"/></svg>`;
 document.querySelectorAll('[data-icon]').forEach(el=>el.innerHTML=icon(el.dataset.icon));
 let scene;let lastPresentationKey='';
-try{scene=new CockpitScene($('#scene'));scene.load().catch(showError);}catch(e){showError(e);}
+try{scene=new CockpitScene($('#scene'),{assemblyIntro:true});scene.load().catch(showError);}catch(e){showError(e);}
 function showError(e){console.error(e);$('#loading').hidden=true;$('#scene-error').hidden=false;$('#scene-error').textContent='3D视图加载失败，请刷新页面，或换用支持 WebGL 的浏览器。';}
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').classList.remove('show'),2300);}
 function persist(){try{localStorage.setItem('roadster-ui-v1',JSON.stringify(Object.fromEntries(['appearance','theme','brightness','units','chargeLimit'].map(k=>[k,state[k]]))));}catch{}}
 function theme(){state.theme=state.appearance==='Auto'?(new Date().getHours()>6&&new Date().getHours()<19?'Light':'Dark'):state.appearance;$('#cockpit').dataset.theme=state.theme;$('#cockpit').style.filter=`brightness(${.3+.7*state.brightness/100})`;}
-function change(patch,redraw=true){if('page' in patch || 'subpage' in patch || 'gear' in patch)patch={...patch,activeHotspot:null};if('page' in patch || 'subpage' in patch || 'setup' in patch)stopEffects(true);Object.assign(state,patch);theme();persist();if(redraw)render();else{applyScene();updatePlayer();} }
+function change(patch,redraw=true){scene?.cancelStartup();if('page' in patch || 'subpage' in patch || 'gear' in patch)patch={...patch,activeHotspot:null};if('page' in patch || 'subpage' in patch || 'setup' in patch)stopEffects(true);Object.assign(state,patch);theme();persist();if(redraw)render();else{applyScene();updatePlayer();} }
 const touchShift=bindTouchShift($('.gear-rail'),selectGear,{
  begin:()=>scene?.beginShiftPreview(),
  move:(gear,progress)=>scene?.previewShift(gear,progress),

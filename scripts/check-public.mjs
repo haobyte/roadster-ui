@@ -13,11 +13,11 @@ const allowed = new Set([
   'data/ui-spec.json', 'licenses/three.txt', 'assets/roadster-body.glb',
   'docs/screenshots/roadster-cockpit.png',
   ...['app.js','boost-audio.js','boost-jets.js','drive-airflow.js','icons.js','interface.css',
-    'presentation.js','rear-assembly.js','rear-wing.js','scene.js','style.css','tesla-fullscreen.js',
+    'presentation.js','startup-check.js','vehicle-assembly.js','rear-assembly.js','rear-wing.js','scene.js','style.css','tesla-fullscreen.js',
     'tesla.css','touch-shift.js','track-setup.js','vehicle-settings.js'].map(name => `src/${name}`),
   ...['build-static.mjs','static-server.mjs','check-public.mjs','public-release-test.cjs',
     'tesla-features.test.mjs','vehicle-logic.test.mjs','drive-airflow.test.mjs',
-    'rear-wing.test.mjs','rear-assembly.test.mjs','boost-effects.test.mjs'].map(name => `scripts/${name}`)
+    'startup-check.test.mjs','rear-wing.test.mjs','rear-assembly.test.mjs','boost-effects.test.mjs'].map(name => `scripts/${name}`)
 ]);
 const patterns = [
   ['private key', /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/],

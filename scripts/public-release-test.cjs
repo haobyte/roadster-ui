@@ -49,6 +49,7 @@ async function listFiles(directory,prefix=''){
  });
  const assetResponses=[];
  page.on('pageerror',e=>errors.push(e.message));
+ page.on('console',m=>{if(m.type()==='error'&&/WebGLProgram|shader error|Error compiling/i.test(m.text()))errors.push(m.text());});
  page.on('response',r=>{if(r.url().startsWith(new URL(base).origin)&&r.status()>=400)errors.push(`${r.status()} ${r.url()}`);if(r.url().endsWith('.glb'))assetResponses.push({url:r.url(),status:r.status()});});
  const ready=async()=>{await page.locator('#main-nav button[data-page=Home]').waitFor();await page.locator('#loading').waitFor({state:'hidden',timeout:45000});};
  const shot=async(name)=>{await page.waitForTimeout(1000);await page.screenshot({path:path.join(qa,`${label}-${name}.png`)});};
@@ -104,6 +105,10 @@ async function listFiles(directory,prefix=''){
   check('Model and embedded textures load without CSP violations',modelViolations.length===0&&await page.locator('#scene-error').isHidden(),modelViolations);
   check('No legacy debug markers, export, time or model tools in the DOM',await page.locator('.hotspot,[download],#export-model,#clock,#tools-toggle,#scene-tools,#cinema-dialog,[data-set=timeFormat]').count()===0);
   check('No production debug global',await page.evaluate(()=>typeof window.roadster==='undefined'));
+  await page.waitForFunction(()=>document.querySelector('#hotspots').hidden,{},{timeout:15000});
+  check('Startup hides part controls while preserving the selected P gear',await page.locator('.gear-rail').getAttribute('data-gear')==='P');
+  await page.waitForFunction(()=>!document.querySelector('#hotspots').hidden,{},{timeout:120000});
+  check('Natural startup finishes and restores parked controls',await page.locator('.gear-rail').getAttribute('data-gear')==='P'&&await page.locator('#scene-error').isHidden());
   await shot('home');
   // The scene renders continuously. Capture its viewport rectangle directly:
   // locator.screenshot waits for layout stability on animation frames, which
@@ -156,6 +161,15 @@ async function listFiles(directory,prefix=''){
   check('Car viewport does not overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   await page.setViewportSize({width:390,height:844});await shot('mobile');
   check('Mobile viewport does not overflow',await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+  await page.reload({waitUntil:'domcontentloaded'});await ready();
+  await page.waitForFunction(()=>document.querySelector('#hotspots').hidden,{},{timeout:15000});
+  await page.locator('#gears [data-gear=D]').click();
+  await page.waitForFunction(()=>!document.querySelector('#hotspots').hidden);
+  check('Mobile gear input interrupts startup and restores part controls',await page.locator('.gear-rail').getAttribute('data-gear')==='D');
+  await page.emulateMedia({reducedMotion:'reduce'});await page.reload({waitUntil:'domcontentloaded'});await ready();
+  await page.waitForFunction(()=>!document.querySelector('#hotspots').hidden);
+  check('Reduced motion shows parked controls without a startup delay',await page.locator('.gear-rail').getAttribute('data-gear')==='P');
+  await page.emulateMedia({reducedMotion:'no-preference'});
   await page.setViewportSize({width:1600,height:1000});
   // Capture the outbound URL locally; this does not validate the real provider chain.
   const violations=await page.evaluate(()=>window.__releaseSecurity.violations);

@@ -13,18 +13,21 @@ import {DriveAirflow} from './drive-airflow.js';
 import {BoostJets} from './boost-jets.js';
 import {RearWingMotion} from './rear-wing.js';
 import {createRearAssembly} from './rear-assembly.js';
+import {VehicleAssembly} from './vehicle-assembly.js';
+import {StartupCheck} from './startup-check.js';
 import {homeParts,lightingState,layoutPartAnchors} from './vehicle-settings.js';
 
 const V=(x,y,z)=>new THREE.Vector3(x,y,z);
 const GOLD=0xc6a45d, WHITE=0xced6df;
 export class CockpitScene{
- constructor(canvas){
+ constructor(canvas,options={}){
+  this.options=options;
   this.canvas=canvas;this.mode='car';this.state={};this.elapsed=0;this.fans=[];this.surfaces=[];this.internals=new THREE.Group();this.internals.name='Internal_components';this.bodyRoot=new THREE.Group();this.bodyRoot.name='Roadster';this.modelRoot=new THREE.Group();this.modelRoot.add(this.bodyRoot);this.bodyRoot.add(this.internals);
   this.renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true,powerPreference:'high-performance',preserveDrawingBuffer:true});this.renderer.info.autoReset=false;this.renderer.setPixelRatio(Math.min(devicePixelRatio,2));this.renderer.setClearColor(0,0);this.renderer.toneMapping=THREE.ReinhardToneMapping;this.renderer.toneMappingExposure=1.2;
   this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x030303,.065);this.scene.add(this.modelRoot);
   this.camera=new THREE.PerspectiveCamera(31,1,.05,80);this.camera.position.set(5,1.9,6.1);
   this.controls=new OrbitControls(this.camera,canvas);this.controls.target.set(0,.5,0);this.controls.enableDamping=true;this.controls.dampingFactor=.065;this.controls.enablePan=false;this.controls.minDistance=3.4;this.controls.maxDistance=12;this.controls.minPolarAngle=.04;this.controls.maxPolarAngle=Math.PI*.51;this.controls.rotateSpeed=.65;this.controls.zoomSpeed=.7;
-  this.controls.addEventListener('start',()=>{this.cameraTween=null;});
+  this.controls.addEventListener('start',()=>{this.cancelStartup({restoreCamera:false});this.cameraTween=null;});
   this.scene.add(new THREE.HemisphereLight(0xffffff,0x33303b,1.2));this.light(0xffffff,3,[1,6,3]);this.light(0xdce8ff,2,[-4,3,-5]);this.light(0xffe5b7,.8,[3,1,-3]);
   const pmrem=new THREE.PMREMGenerator(this.renderer);this.environment=pmrem.fromScene(new RoomEnvironment(),.04);this.scene.environment=this.environment.texture;pmrem.dispose();
   this.ground=this.makeGround();this.scene.add(this.ground);
@@ -33,6 +36,7 @@ export class CockpitScene{
   this.castGold=this.gold.clone();this.castGold.opacity=.62;this.castGold.depthWrite=false;
   this.dark=new THREE.MeshStandardMaterial({color:0x101214,metalness:.6,roughness:.4});this.silver=new THREE.MeshStandardMaterial({color:0xa8b4c0,metalness:.7,roughness:.3});
   this.makeInternals();this.batchTree(this.internals);this.addInternalEdges();this.makeAero();this.makeCabin();this.makeTrack();
+  this.bodyRoot.visible=false;
   this.airflow=new DriveAirflow();this.bodyRoot.add(this.airflow);
   this.resizeObserver=new ResizeObserver(()=>this.resize());this.resizeObserver.observe(canvas.parentElement);this.resize();this.clock=new THREE.Clock();this.animate();
  }
@@ -105,7 +109,16 @@ export class CockpitScene{
   this.boostJets=new BoostJets(this.mainNozzles);
   for(const o of this.lights||[]){const m=o.material;m.userData.lightOpacity=m.opacity;m.transparent=true;}
   this.makePartHighlights();
-  this.ready=true;document.getElementById('loading').hidden=true;this.apply(this.state);return this;
+  this.ready=true;this.apply(this.state);
+  if(this.options.assemblyIntro&&!reducedMotion()&&this.state.page==='Home'&&this.state.gear==='P'&&!this.state.activeHotspot){
+   const initial=presentation(this.state);this.setCamera(initial.camera,initial.target,true);
+   for(const wheel of this.wheels)wheel.position.y=-this.bodyRoot.position.y;
+   this.assembly=new VehicleAssembly(this.bodyRoot,this.exterior,this.surfaces,{compact:matchMedia('(max-width: 650px)').matches});
+   this.assembly.setViewport(this.canvas.clientHeight,this.renderer.getPixelRatio());
+   this.startup=new StartupCheck(this.camera,this.controls,this.wheels);
+  }
+  this.bodyRoot.visible=true;
+  const loading=document.getElementById('loading');if(loading)loading.hidden=true;return this;
  }
  makeGround(){
   const pts=[],colors=[];for(let x=-15;x<=15;x+=.23)for(let z=-15;z<=15;z+=.23){pts.push(x,-.04,z);const a=Math.max(0,1-Math.hypot(x,z)/16)*.34;colors.push(a,a,a);}
@@ -252,7 +265,8 @@ export class CockpitScene{
  }
  positionHotspots(){
   if(!this.ready||this.state.page!=='Home'||this.mode!=='car')return;
-  document.getElementById('hotspots').hidden=false;
+  const hotspots=document.getElementById('hotspots');if(!hotspots)return;
+  hotspots.hidden=Boolean(this.startup&&!this.startup.complete);if(hotspots.hidden)return;
   const rect=this.canvas.getBoundingClientRect();if(!rect.width)return;
   this.bodyRoot.updateWorldMatrix(true,false);
   const anchors=[];
@@ -295,6 +309,7 @@ export class CockpitScene{
   const r=this.canvas.parentElement.getBoundingClientRect();if(r.width<1||r.height<1)return;
   this.renderer.setSize(r.width,r.height,false);this.composer?.setSize(r.width,r.height);this.camera.aspect=r.width/r.height;
   this.airflow?.setViewport(r.width,r.height,this.renderer.getPixelRatio());
+  this.assembly?.setViewport(r.height,this.renderer.getPixelRatio());
   // Keep the closer Custom framing, but fit wider car views into portrait canvases.
   const custom=this.state.page==='Vehicle'&&this.state.subpage==='Dynamics'&&this.state.preset==='Custom';
   this.camera.zoom=this.mode==='car'?(this.presentationStyle?.zoom??1.15)*Math.min(1,this.camera.aspect/(this.state.boostPreview?1.15:custom?1:1.5)):1;
@@ -302,6 +317,7 @@ export class CockpitScene{
  }
  beginShiftPreview(){
   if(!this.ready||this.state.page!=='Home'||this.mode!=='car'||this.canvas.getAnimations().length)return false;
+  this.cancelStartup({restoreCamera:false});
   const position=this.camera.position.clone(),target=this.controls.target.clone();
   // Flush OrbitControls' old inertia, then preserve the exact hand-rotated pose.
   const damping=this.controls.enableDamping;this.controls.enableDamping=false;this.controls.update();this.controls.enableDamping=damping;
@@ -351,6 +367,7 @@ export class CockpitScene{
  }
  apply(s){
   const prev=this.state;this.state={...s};const p=presentation(s);const old=presentation(prev);
+  if(s.page!==prev.page||s.gear!==prev.gear||s.activeHotspot!==prev.activeHotspot)this.cancelStartup({restoreCamera:false});
   const changed=old.key!==p.key,gearChanged=prev.gear!==s.gear;
   // Gear gestures reuse the collision-safe orbit transition; N keeps the current view.
   if(gearChanged&&s.page==='Home'&&!s.activeHotspot){
@@ -390,26 +407,39 @@ export class CockpitScene{
   this.trackMat.color.set(s.theme==='Light'?0xe9e9e6:0xff261e);this.trackMat.toneMapped=false;
   this.ground.material.color.set(p.mode==='track'?(s.theme==='Light'?0xaaaaaa:0x8e1712):0xffffff);
  }
+ cancelStartup({restoreCamera=true,immediate=false}={}){
+  if(!this.startup||this.startup.complete)return false;
+  this.startup.finish({restoreCamera:false});this.assembly?.finish();this.cameraTween=null;
+  if(restoreCamera){const p=presentation(this.state);this.setCamera(p.camera,p.target,immediate);}
+  return true;
+ }
  animate(){this.raf=requestAnimationFrame(()=>this.animate());const dt=Math.min(this.clock.getDelta(),.25);this.elapsed+=dt;
-  if(this.shiftPreview){
+  const startupDt=document.hidden?0:dt;
+  if(this.startup&&!this.startup.complete){
+   if(reducedMotion()||this.mode!=='car')this.cancelStartup({immediate:true});
+   else this.startup.update(startupDt);
+  }
+  const startupActive=Boolean(this.startup&&!this.startup.complete);
+  if(!startupActive&&this.shiftPreview){
    const g=this.shiftPreview,a=1-Math.exp(-SHIFT_PRESENTATION.followRate*dt);
    const current=new THREE.Spherical().setFromVector3(this.camera.position.clone().sub(this.controls.target));
    current.theta=g.desired.theta+THREE.MathUtils.euclideanModulo(current.theta-g.desired.theta+Math.PI,Math.PI*2)-Math.PI;
    current.set(THREE.MathUtils.lerp(current.radius,g.desired.radius,a),THREE.MathUtils.lerp(current.phi,g.desired.phi,a),THREE.MathUtils.lerp(current.theta,g.desired.theta,a));
    this.controls.target.lerp(g.desiredTarget,a);this.camera.position.setFromSpherical(current).add(this.controls.target);this.camera.lookAt(this.controls.target);
-  }else if(this.cameraTween){const t=this.cameraTween;t.time+=dt;const a=Math.min(t.time/t.duration,1),e=t.sineOut?Math.sin(a*Math.PI/2):a*a*a*(a*(a*6-15)+10);this.controls.target.lerpVectors(t.from,t.target,e);const sphere=new THREE.Spherical(THREE.MathUtils.lerp(t.start.radius,t.end.radius,e)+Math.sin(Math.PI*e)*(t.clearance||0),THREE.MathUtils.lerp(t.start.phi,t.end.phi,e),THREE.MathUtils.lerp(t.start.theta,t.end.theta,e));this.camera.position.setFromSpherical(sphere).add(this.controls.target);this.camera.lookAt(this.controls.target);if(a===1)this.cameraTween=null;}
-  if(!this.cameraTween&&!this.shiftPreview)this.controls.update();
+  }else if(!startupActive&&this.cameraTween){const t=this.cameraTween;t.time+=dt;const a=Math.min(t.time/t.duration,1),e=t.sineOut?Math.sin(a*Math.PI/2):a*a*a*(a*(a*6-15)+10);this.controls.target.lerpVectors(t.from,t.target,e);const sphere=new THREE.Spherical(THREE.MathUtils.lerp(t.start.radius,t.end.radius,e)+Math.sin(Math.PI*e)*(t.clearance||0),THREE.MathUtils.lerp(t.start.phi,t.end.phi,e),THREE.MathUtils.lerp(t.start.theta,t.end.theta,e));this.camera.position.setFromSpherical(sphere).add(this.controls.target);this.camera.lookAt(this.controls.target);if(a===1)this.cameraTween=null;}
+  if(!startupActive&&!this.cameraTween&&!this.shiftPreview)this.controls.update();
   this.layerElapsed=(this.layerElapsed||0)+dt;
   for(const c of this.layerChannels||[]){if(reducedMotion()||this.layerElapsed>=(c.delay||0))c.value=reducedMotion()?c.target:THREE.MathUtils.damp(c.value,c.target,8,dt);for(const {material,opacity} of c.materials){material.opacity=opacity*c.value;material.depthWrite=c.name==='rear'&&this.exteriorAppearance&&material.opacity>.9;}for(const root of c.roots)root.visible=c.value>.004;}
   this.surfaces.forEach(m=>{if(m.userData.targetOpacity!==undefined){const a=reducedMotion()?1:1-Math.exp(-8*dt);m.opacity=THREE.MathUtils.lerp(m.opacity,m.userData.targetOpacity,a);m.userData.xray.value=THREE.MathUtils.lerp(m.userData.xray.value,m.userData.targetXray,a);m.color.lerp(m.userData.targetColor,a);m.userData.grid.value=THREE.MathUtils.lerp(m.userData.grid.value,m.userData.targetGrid,a);m.depthWrite=m.userData.targetXray===0&&m.userData.xray.value<.01&&m.opacity>.9;}});
   this.renderer.toneMappingExposure=THREE.MathUtils.damp(this.renderer.toneMappingExposure,this.exposureTarget??1.2,6,dt);
   this.lightGain=reducedMotion()?this.lightTarget:THREE.MathUtils.damp(this.lightGain??1,this.lightTarget??1,7,dt);
   this.beamGain=reducedMotion()?this.beamTarget:THREE.MathUtils.damp(this.beamGain??1,this.beamTarget??1,7,dt);
-  this.beams.visible=this.mode==='car'&&this.beamGain>.001;this.beams.children.forEach(o=>o.material.uniforms.uStrength.value=this.beamGain);
+  this.beams.visible=Boolean(this.ready&&this.mode==='car'&&this.beamGain>.001&&(!this.assembly||this.assembly.complete));this.beams.children.forEach(o=>o.material.uniforms.uStrength.value=this.beamGain);
   for(const o of this.lights||[]){o.visible=this.lightGain>.001;o.material.opacity=(o.material.userData.lightOpacity??1)*this.lightGain;}
   const s=this.state;
-  this.wingMotion?.update(s,dt,reducedMotion());
-  this.airflow.update(dt,{active:this.ready&&this.mode==='car'&&this.presentationStyle?.airflow===true,reducedMotion:reducedMotion(),lightTheme:s.theme==='Light',wingLift:this.wingMotion?.pose.lift??0});
+  const check=startupActive?this.startup.frame:null,motionDt=startupActive?startupDt:dt;
+  this.wingMotion?.update(check?{...s,gear:check.wing?'D':'P'}:s,motionDt,reducedMotion());
+  this.airflow.update(motionDt,{active:this.ready&&this.mode==='car'&&(check?check.airflow:this.presentationStyle?.airflow===true),reducedMotion:reducedMotion(),lightTheme:s.theme==='Light',wingLift:this.wingMotion?.pose.lift??0});
   if(s.page==='Track'&&s.boostPreview)this.boostJets?.update(dt,{active:this.ready&&s.boostActive,reducedMotion:reducedMotion()});else this.boostJets?.reset();
   const approach=(value,target,rate=7)=>reducedMotion()?target:THREE.MathUtils.damp(value,target,rate,dt);
   this.frontWing.rotation.x=approach(this.frontWing.rotation.x,s.frontWing==='High Downforce'?-.15:0);
@@ -420,6 +450,7 @@ export class CockpitScene{
   this.hoodVent.position.y=approach(this.hoodVent.position.y,s.hoodOpen?.72:.67);
   this.boards.forEach((o,i)=>{const side=i===0?-1:1;o.rotation.y=approach(o.rotation.y,s.bargeDeploy?side*.4:0);o.position.x=approach(o.position.x,side*(s.bargeDeploy?.99:.9));});
   for(const f of this.fans)f.rotation.z+=dt*(s.fanOn?9:.4);
+  if(!document.hidden)this.assembly?.update(dt,{reducedMotion:reducedMotion(),visible:this.mode==='car'});
   if(this.mode==='track'){if(s.telemetry!==false&&!reducedMotion())this.trackElapsed=(this.trackElapsed||0)+dt;const a=((this.trackElapsed||0)/91.5)%1,p=this.trackCurve.getPoint(a),d=this.trackCurve.getTangent(a);this.trackDot.position.copy(p);this.trackDot.position.y+=.08;this.trackDot.rotation.z=-Math.atan2(d.x,d.z);}
   if(this.mode==='hidden')return;
   if(this.airflow.visible){this.airflow.protectNozzles(this.rearAssembly,this.camera);this.airflow.protectWing(this.importedWing,this.camera);}
